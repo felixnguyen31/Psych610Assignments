@@ -1,0 +1,279 @@
+---
+title: 'Comprehensive Assignment #2'
+author: 'Last 4 digits of your STUDENT ID #: 0029 '
+fig_width: 6
+output:
+  html_document: null
+  fig_caption: yes
+  pdf_document: default
+  word_document: default
+fig_height: 4
+---
+
+*** 
+
+# Part A [22 points]
+
+## A.1	Judd, McClelland, and Ryan (2017) declare that it is unethical to include outliers in analyses without reporting or removing them. In your own words, what are the ethical grounds the authors use to support this claim? Why should we care as statisticians and practitioners of science? [3]
+> The authors support this claim using the ethical argument that it is purpose of data analysis to build a story, to gain insights, out of what the data have to tell. Therefore, if we include outliers without reporting or removing them, we are allowing the results to be influenced by a few observations while ignoring others, thus mispresenting the real story behind the data. As statisticians and practitioners of science, we should care about whether the results we are presenting are the truth from the data or not, in order to not come up with wrong inferences or misleading peers and readers. 
+
+## A.2 Judd, McClelland, and Ryan (2017) recommend adjusting critical values when calculating studentized deleted residuals. What method do they suggest? Why is this important? [3]
+> The authors suggest using Bonferroni inequality to adjust critical values through α (α’ = α/n). This is important because when we calculate the studentized deleted residuals for all observations, we would be performing the equivalent of n statistical tests on the same set of observations, thus increase the risk of Type I error significantly.
+
+## A.3	You decide to conduct outlier analysis on a dataset in which you have 64 participants. What is the likelihood that you will make at least one Type I error if you maintain an alpha of .05 across all of these tests? What would your alpha be if you adjusted it using the method proposed by Judd, McClelland, and Ryan (2017)? Demonstrate that this adjustment brings your error rate down to an acceptable level (using numbers, not words). [3]
+> The likelihood of making at least one Type I error would be 1 - .95^64 = 96.25%.
+	Adjusted α according to Judd, McClelland, and Ryan (2017) would be:
+	α’ = α/n  = .05/64 = .00078125
+	With this adjustment, the likelihood of making at least one Type I error would be:
+	1 – (1-.00078125)^64 = 0.0488 < 0.05, thus an acceptable level.
+
+## A.4	Judd, Yzerbyt, and Muller (2014) claim that mediation and moderation can be understood as having different goals. What, according to these authors, are these different goals? [3]
+> The goal of mediation analysis is exploring the underlying mechanisms responsible for an effect of interest, while the goal of moderation analysis is exploring the ways in which the magnitude of an effect of interest may depend on other variables.
+
+## A.5	Judd, Yzerbyt, and Muller (2014) claim that the term âdirect effectâ in mediation analysis can be misleading. In your own words, explain why. [3]
+> The term “direct effect” can be misleading in this case because it just mean the residual effect of X on Y not explained the mediators in consideration, thus the “direct effect”, or part of it, could potentially be explained by other mediators that haven’t been considered in the analysis.
+
+## A.6	Judd, McClelland, and Ryan (2017) discuss statistical power for testing parameters from interactive models. Generally, the same considerations affect the power of tests in an interactive model as in an additive model. However, the authors describe an âinteresting twist.â What are the implications for the statistical power to detect an interactive effect when the lower-order terms are transformed?  [3]
+> The main implication is that while a product variable may be redudant with its components, and while transformations of its components may reduce that redundancy, such transformations will have no effect on the inference power of the product variable’s regression coefficient as long as the component variables are included in the model. This is an interesting exception to the general rule that redundancy tends to reduce power.
+
+## A.7	Judd, McClelland, and Ryan (2017) discuss their reservations about automatic model building procedures such as step-wise regression. They list three critiques of these procedures. In your own words, what are the critiques, and do you agree with them? [4]
+> The first critique is that an unfocused search through many possible models would increase the chance of making Type I error and come up with a model that represent false relationship. The second one is that the interpretations of coefficients and the meaning of questions being asked depends on what other variables are included in the model. Thus if we want to have meaningful answers and inferences, automatic model building won't be able to help us. Lastly, the authors believe better models and better understanding of data results from focused analysis, guided by substantive theory.
+>I would agree with the authors. However, thare are also cases where automatic model building would be useful, such as shifting through a large number of independent variables, and when the main intention is not for understanding the relationship, but for optimization and forecasting.
+
+```{r load ALL required packages, include=FALSE}
+library(lmSupport)
+library(car)
+library(psych)
+library(ggplot2)
+library(mediation)
+library(multilevel)
+```
+
+# Part B
+```{r load Study B data, include=FALSE}
+d <- read.csv("C:/Users/phhun/Documents/Courses/Psych610Lab/Homework/PartB.csv")
+```
+
+## B.1 Run a command to look at the descriptive statistics of the dataset. Run a command to look at only a few rows of the data set. Make two histograms, one for the dependent variable and one for the continuous predictor. [1]  
+```{r}
+# paste code below
+str(d)
+varDescribe(d)
+head(d)
+hist(d$VsActivity)
+hist(d$NegAffect)
+# paste code above
+```
+
+## B.2 Estimate the following three models: the mean-only model for ventral striatum activityâlabel this model m0; a model that predicts ventral striatum activity from only negative affectâlabel this model m1; a model that predicts ventral striatum activity from both negative affect as well as pet ownershipâlabel this model m2. Run modelSummary() on each model. Pay attention to the SSEs for each model because youâll need them for the next question. [3]
+
+```{r}
+# paste code below
+m0 <- lm(VsActivity ~ 1, data = d)
+modelSummary(m0)
+m1<- lm(VsActivity ~ NegAffect, data = d) 
+modelSummary(m1)
+m2 <- lm(VsActivity ~ NegAffect + Group, data = d)
+modelSummary(m2)
+# paste code above
+```
+
+## B.3 Using the three SSEs you just calculated, compute "by hand" both delta R2 and partial eta2 for pet ownership in model m2 [2] 
+> partial eta^2  = (SSE(m1) - SSE(m2))/SSE(m1) =  10.29%
+> Detla R^2 =  (SSE(m1) - SSE(m2))/SSE(m0)= 4.717%
+
+## B.4 To check your answer from B.3, run a command to determine both delta R2 and partial eta 2 for pet ownership group from model m2. [1]
+```{r}
+# paste code below
+modelEffectSizes(m2)
+# paste code above
+```
+
+## B.5 Perform a complete case analysis for model m2. First, run a command to identify which participant(s) has/have high leverage. Then, run a command to identify which cases(s) is/are model outliers. Finally, run a command to identify the case(s) with excessive influence on the model as a whole, not on individual parameter estimates. [4]
+```{r}
+# paste code below
+xHats = modelCaseAnalysis(m2, Type='HATVALUES') #For leverage
+xHats
+d[xHats$Rownames,]
+
+# Case 6, 24 & 32 have high leverage
+
+xResids = modelCaseAnalysis(m2, Type='RESIDUALS') #for outlier
+
+#No Outlier
+
+xCooks = modelCaseAnalysis(m2, Type='COOKSD') #For influence
+xCooks
+d[xCooks$Rownames,]
+#Case #33 have high influence
+# paste code above
+```
+
+## B.6 Which case(s) did you identify as having high leverage? Is it a problem that this/these case(s) has/have high leverage, why or why not? Which case(s) did you identify as being model outliers? Is it a problem that this/these case(s) is/are model outliers, why or why not? Which case(s) did you identify as having excessive influence on the model overall? How can you tell that this/these case(s) is/are influential, and why is that a problem? [4]
+> Case 6, 24 & 32 have high leverage. To determine if these cases are problem or not, we need to see if they are regression outlier. Using Studentized deleted residual, we can see those cases are not regression outlier, and thus not a problem. In fact, there is no regression outlier in our data, for regression model m2. For excessive influence, case #33 is identfied as having excessive influence, since this case have much larger Cook's Distance (~0.17) than other cases (0-0.07), and outside the cut off line (4/(n-p)). This is a problem because it would significantly alter the coefficients of the fitted regression model, thus ignoring other cases and mispresenting the story behind the data.
+
+## B.7 Create a new dataframe that excludes the case(s) with excessive influence overall, and use the new dataframe to refit the full model predicting ventral striatum activity from both pet ownership group and negative affect. Label this model m4. Run commands to check whether the assumptions of constant variance, linearity and normality are satisfied. [3]
+```{r}
+# paste code below
+d1 <- dfRemoveCases(d, 33) #Remove case #33
+m4 <- lm(VsActivity ~ NegAffect + Group, data = d1)
+modelSummary(m4)
+
+modelAssumptions(m4, "NORMAL") #Normality Assumption Check
+modelAssumptions(m4, "CONSTANT") #Constant Variance check
+modelAssumptions(m4, "LINEAR") #Linearity check
+# paste code above
+```
+
+## B.8 How you can tell whether assumptions are met or not? (Max 2 sentences for each assumption.)  [3]
+> For Normality: The QQ Plot looks normal, save for the slight skew of the upper tail, which is still within the acceptable range, and the density plot looks nearly normally-distributed. Therefore, this assumption is satisfied.
+
+> For Constant Variance assumption: The spread of residuals is not really constant for all values of x, according to the left plot and the right plot's regression line also doesn't have a 0 slope (the slope is still very small). Thus, there may be a small heteroscedasticity.
+
+> For Linearity assumption: The component + residual plot for each of the predictors show an almost linear relationship (red line and blue line are similar), thus show that Linearity assumption is met.
+
+## B.9 With model m4, run the Box-Cox method to estimate a power transformation that can be applied to ventral striatum activity. Regardless of your output, use 2 as your power transformation. Transform ventral striatum activity and save these values as VSactivityT. Then, fit a model predicting transformed ventral striatum values from pet ownership group and negative affect. Label this model m4t and generate the summary for this model. Then, run commands to assess whether the assumptions of constant variance, linearity and normality are satisfied. [4]
+```{r}
+# paste code below
+modelBoxCox(m4) #Best lambda = 2
+d1$VSactivityT <- d1$VsActivity^2
+m4t <- lm(VSactivityT ~ NegAffect + Group, data = d1) #New model with transformed data
+modelSummary(m4t)
+modelAssumptions(m4t, "NORMAL") #Normality Assumption Check
+modelAssumptions(m4t, "CONSTANT") #Constant Variance check
+modelAssumptions(m4t, "LINEAR") #Linearity check
+# paste code above
+```
+
+## B.10 Compute the correlation between the untransformed and the transformed ventral striatum activity scores. Then make a quick-and-dirty plot the transformed ventral striatum activity scores as a function of the untransformed ventral striatum activity scores. [2]
+```{r}
+# paste code below
+cor(d1$VsActivity, d1$VSactivityT)
+plot(d1$VsActivity, d1$VSactivityT)
+abline(lm(VSactivityT ~ VsActivity, data = d1))
+# paste code above
+```
+
+## B.11 Comment on what you observed in B.10: was there a correlation? How strong? In light of your observation regarding the association between the transformed and untransformed data, comment on the differences between the tests of the model assumptions in B.7 and B.9. Could the researcher have done something better? If yes, what would you suggest to him/her? [2]
+> There was a very strong correlation between transformed and untransformed data. Therefore, the test results of model assumptions for both transformed and untransformed models are similar to each other. The research doesn't really have to do anything better since most of the assumptions are met. However, it would be better if they can have a basal ventral striatum actitivity to standardize the variable, since the ratio between the largest and smallest ventral stratium activity is not much than 1, thus power transformation doesn't make much change.
+
+## B.12 Using the transformed data, make a publication-ready bar graph in which you show the effect of pet ownership on ventral striatum activity while holding negative affect constant at its mean. Your plot should include the adjusted means and standard errors of the point-estimate for each pet ownership group, as well as the jittered raw data points. HINT: If you have trouble with labeling the bars in your plot try using adding   scale_x_discrete(labels=c("0.5" = "Pet","-0.5" = "No Pet")). [5]
+```{r}
+# paste code below
+dNew = expand.grid(Group = c(0, 1), 
+                   NegAffect = mean(d1$NegAffect, na.rm=TRUE)
+)
+dNew = modelPredictions(m4t,dNew)
+
+
+plot = ggplot(dNew, aes(x = as.factor(Group), y = Predicted, fill=as.factor(Group))) +  
+  geom_bar(stat = "identity", 
+           position = position_dodge(width = 0.5),
+           width = 0.5) +
+  geom_point(data = d1, aes(y = VSactivityT, x = as.factor(Group)),colour='darkgrey', 
+             position = position_jitter(w = 0.1, h = 0)) +
+  geom_errorbar(width=.25, aes(ymin = CILo, ymax = CIHi), stat="identity") + 
+  labs(y = 'Ventral Striatum Activity', x = 'Pet Ownership Group') + 
+  scale_x_discrete(labels=c("1" = "Pet","0" = "No Pet")) +
+  theme_bw(base_size = 14) +                         
+  theme(legend.position="none") 
+plot  
+# paste code above
+```
+
+## B.13 Reflect on the overall findings from this study. Was the researcherâs hypothesis regarding the effect of pet ownership on ventral striatum activity confirmed? How strong is the evidence in favor of the researcher's hypothesis? Remember that the researcher predicted group differences in brain activity when viewing positive images (=rewarding stimuli). For each statistic you report, be sure to include the parameter estimate, a 95% confidence interval for the estimate, a test statistic (i.e., t or F), a p value, and a variance-based effect size indicator (i.e., partial eta squared or delta r squared). [6]
+> This study looked at the effect of pet ownership on ventral striatum activity (M = 642.4, SD = 67.6). Before interpreting the model, it was noticed that there is a case (#33) that has excessive influence on the model's parameter estimates as a whole. We reported the model with this case removed, however, whether this case was included or excluded did not change the overall relationship. We tranformed the dependent variable using a power transformation of 2, however since the ratio between maximum and minimum of the DV is small (~ 1), this didn't make much change.
+
+>The regression result suggests that there is a significant increase in ventral striatum activity when viewing positive images if a person is a pet owner, when statistically controlled for Negative Effects,  b = 52.25 [16.154, 88.346], F(1, 40) = 8.559, p = 0.006, partial-eta^2 = 0.176 for untransformed model and  b = 67684.251 [21919.223, 113449.279], F(1, 40) = 8.935, p = 0.005, partial-eta^2 = 0.183 for transformed model. The partial eta squared showed that the effect is decently strong.
+
+# Part C
+```{r load Study C data, include=FALSE}
+df <- dfReadDat("C:/Users/phhun/Documents/Courses/Psych610Lab/Homework/PartC.dat") 
+```
+
+## C.1 Explore the dataset by obtaining the recommended univariate and bivariate statistics and plots. [2]
+```{r}
+# paste code below
+varDescribe(df)
+head(df)
+varDescribeBy(df[c("numStrategies","mathScore")], df$Condition)
+scatterplotMatrix(df[, c("numStrategies","mathScore","Condition")])
+corr.test(df[, c("numStrategies","mathScore","Condition")])
+df_control <- subset(df, Condition == 1)
+df_creative <- subset(df, Condition == 2)
+corr.test(df_control[, c("numStrategies","mathScore")])
+corr.test(df_creative[, c("numStrategies","mathScore")])
+plot(df$Condition, df$mathScore)
+# paste code above
+```
+
+## C.2 Run three models to test the conditions for whether the data are consistent with the mediation model hypothesized by the researchers. Then, use a non-parametric bootstrap approach to obtain a confidence interval for the indirect effect. [4]
+```{r}
+# paste code below
+#Mean-Centering "Condition" variable
+df$ConditionC <- varRecode(df$Condition, c(1,2), c(-.5,.5))
+mod1 <- lm(mathScore ~ ConditionC, data = df)
+modelSummary(mod1)
+mod1a <- lm(numStrategies ~ ConditionC, data = df)
+modelSummary(mod1a) 
+mod1b <- lm(mathScore ~ ConditionC + numStrategies, data = df)
+modelSummary(mod1b)
+med <- mediate(mod1a, mod1b, treat = "ConditionC", mediator = "numStrategies", boot=T)
+summary(med)
+# paste code above
+```
+
+## C.3 Comment on whether each of the first three conditions are satisfied and justify your answers with reference to the models you ran in C.3. Do you think these data are consistent with a mediation model? Why or why not? [4] 
+> 1. Condition 1: There is a relationship between the DV and IV. This is satisfied as evidenced by mod1 result: b = 2.194 [1.055, 3.332], F(1, 60) = 14.859, p < .001, p-eta^2 = 0.198
+2. Condition 2: There is a relationship between the IV and numStrategies. This is satisfied as evidenced by mod1a: b = 1.032 [0.611, 1.453], F(1, 60) = 24.075, p < .001, p-eta^2  = 0.286
+3. Condition 3: There is a relationship between numStrategies and the DV, controlling for IV. This is satisfied as evidenced by mod1b: b = 1.644 [1.085, 2.204], F(1, 59) = 34.575, p < .001, p-eta^2  = 0.369. 
+
+>Beside the three condition, condition 4, the effect of IV on DV is reduced significantly when numStrategies is included, is satisfied using the bootstrap method, with CI[0.95,2.58] doesn't include 0, p<.001.
+Since all four conditions are satisfied, we can say that the data are consistent with a mediation model.
+
+## C.4 Use the plot function of the mediate package to create a basic plot of the effects in this mediation model. (This is a plot of the estimates of the direct and indirect effect and their confidence intervals, not a publication quality graph.) [1]
+```{r}
+# paste code below
+plot(med)
+# paste code above
+```
+
+## C.5 What should be true about the CI for the indirect effect if the data are consistent with the hypothesized meditational model? [2]
+> The CI of indirect effect should not contain zero point (0) if the data are consistent with the hypothesized meditational model. 
+
+## C.6 Imagine that a reviewer asks you to perform a Sobel test in addition to the analyses you		completed in question C.2. Perform this test. [1] 
+```{r}
+# paste code below
+sobel(df$ConditionC, df$numStrategies, df$mathScore)
+# paste code above
+```
+
+## C.7 Do the results of the Sobel test suggest that the data are consistent with the mediation model hypothesized by the researchers? Why or why not? [2]
+> The result of the Sobel test suggests that the data are consistent with the hypothesized meditational model. This is because z-value = 3.767 > 1.96 (the conservative cutoff). 
+
+## C.8 Despite the fact that you measured number of learning strategies prior to measuring math performance, test whether your data are consistent with reverse mediation. In other words, test whether the data are consistent with a model in which math performance mediates the relationship between condition and number of strategies used. Run the three models required to test the four conditions, and a non-parametric bootstrap to obtain a confidence interval for the indirect effect. [4]
+```{r}
+# paste code below
+mod2 <- mod1a
+mod2a <- mod1
+mod2b <- lm(numStrategies ~ mathScore + ConditionC, data = df)
+modelSummary(mod2b)
+med2 <- mediate(mod2, mod2b, treat = "ConditionC", mediator = "mathScore", boot=T)
+summary(med2)
+# paste code above
+```
+
+## C.9 Write up the results of this experiment in APA format. For each statistic you report, be sure to include the parameter estimate, a 95% confidence interval for the estimate, a test statistic (i.e., t or F), a p value, and a variance-based effect size indicator (i.e., partial eta squared or delta r squared). Make sure to explain whether or not the data are consistent with the hypothesized mediation model. You do not need to include the results from your Sobel test in your write-up, but should include the findings from the reverse mediation model. [10] 
+> 62 children were randomly assigned into performing either creativity task (n = 31) or control task (n = 31). To investigate whether an intervention to encourage children to think creatively would lead children to have higher Math score than control condition, we fit a General Linear Model predicting Math Score from the condition group. As we expected, children in creativity condition have higher Math score (M=92.16, SD = 2.22) than control condition (M = 89.97, SD = 2.26), b = 2.194 [1.055, 3.332], F(1, 60) = 14.859, p < .001].  The condition accounted for 19.8% variance in Math Score, partial-eta^2= 0.198. We also noticed that children in creativity condition (M = 2.31, SD = 1.08) tend to use more strategies than those of control condition (M = 1.29, SD = 0.46), b = 1.032 [0.611, 1.453], F(1, 60) = 24.075, p < .001, partial-eta^2  = 0.286.
+
+> In order to investigate this potential mediation effect, we estimated a multiple regression model in which we regressed Math score on both condition group and number of strategies used. The results suggest that the effect of number of strategies used is significant controlling for condition group, b = 1.644 [1.085, 2.204], F(1, 59) = 34.575, p < .001, partial-eta^2 = 0.369, while the effect of condition group is not significant anymore. We followed the recommendations of Preacher and Hayes (2004), who suggest using a bootstrapping procedure to compute a confidence interval around the indirect effect (i.e., the path through the mediator). We used Imai et al.'s (2010) mediation package in R to estimate the confidence interval. Results revealed that the indirect effect via number of Strategies had a value of 1.697, CI95% [0.945, 2.520]. The fact that zero falls outside the confidence interval indicates a statistically significant indirect effect, p < .05. The indirect effect accounts for 77.4% of the total effect of creativity condition on Math Score. All in all, the data is consistent with our hypothesized mediation model.
+
+> We also tested for reverse mediation by estimating a model in which the effect of condition group on number of Strategies was assumed to be mediated by Math score.  The data is also consistent with this reverse model. The regression model shows that both Math Score and condition group have significant effect on number of Strategies used by the children (b1 = 0.225 [0.148, 0.301], F(1, 59) = 34.575, p < .001, partial-eta^2 = 0.369; b2 = 0.539 [0.163, 0.916], F(1, 59) = 8.215, p < 0.01, partial-eta^2 = 0.122. The indirect effect had a value of 0.232, CI95% [0.113, 0.38]. The indirect effect accounts for 30.1% the total effect of condition group on number of Strategies. 
+
+> Taken together, these analyses show that there is mediating relationship between number of Strategies used and the effect of creativity on Math Score. However, the causal pathway of this relationship is still unclear since the reverse mediation model is also consistent with the data.
+
+## C.10 Take a standard simple mediation model (not the data you just analyzed). If the data are consistent with the hypothesized mediation model, one would expect, among other things, that the predictor (X) has a statistical effect on the mediator (M). In other words we'd expect X and M to be correlated. What happens to the indirect effect and its confidence interval as the correlation between X and M increases from, let's say, .01, .4, .9, to .99? Hint: Consider multiple elements of the model, including the standard error of path b. [4]
+> Increasing the correlation between independent variable and the mediator would increase the indirect effect of the mediating model, since an increase in a, while b does not decrease, would lead to an increase in ab - indirect effect. However, an increase in a would, by definition, increases collinearity, and thus lead to an increase in stantard errors of variables in path b. This would in turn widen the confidence interval of the indirect effect, lowering its lower bound and increasing its upper bound.
+
+## C.11 Briefly explain why you drew each part of the pie chart in the size you did. What was your thinking when you decided on the size of each of the four parts? [2] # 2 more points for an accurately drawn pie chart. 
+> First part, "Uniquely explained by X", would be very small (let's use 0.5%), since X is fully mediated by M. Therefore, most of the variance explained by X would be "jointly explained by X and Y". I used 30% since it's a decent percentage and not unrealistic. Some of the variance can also be explained by M uniquely (10%). The rest would not be explained by neither X or M (59.5%)
